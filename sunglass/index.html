@@ -57,32 +57,77 @@
                         <span class="navbar-toggler-icon"></span>
                         </button>
                         <div class="collapse navbar-collapse" id="navbarsExample04">
-                           <ul class="navbar-nav mr-auto">
-                              <li class="nav-item active">
-                                 <a class="nav-link" href="index.html">Home</a>
-                              </li>
-                              <li class="nav-item">
-                                 <a class="nav-link" href="about.html">About</a>
-                              </li>
-                              <li class="nav-item">
-                                 <a class="nav-link" href="glasses.html">Our Glasses</a>
-                              </li>
-                              <li class="nav-item">
-                                 <a class="nav-link" href="shop.html">Shop</a>
-                              </li>
-                              <li class="nav-item">
-                                 <a class="nav-link" href="contact.html">Contact Us</a>
-                              </li>
-                              <li class="nav-item d_none login_btn">
-                                 <a class="nav-link" href="#">Login</a>
-                              </li>
-                              <li class="nav-item d_none">
-                                 <a class="nav-link" href="#">Register</a>
-                              </li>
-                              <li class="nav-item d_none sea_icon">
-                                 <a class="nav-link" href="#"><i class="fa fa-shopping-bag" aria-hidden="true"></i><i class="fa fa-search" aria-hidden="true"></i></a>
-                              </li>
-                           </ul>
+                           					  
+							<script>
+							  function post(url, json){
+								var xhr = new XMLHttpRequest();
+								xhr.open('POST', url, true);
+								xhr.setRequestHeader('Authorization', 'Basic Om93bDNtN2pod2NuZWZ3NGw3YjJsd3VnNWw2M3J5M3psczRja3M2YWI2dGlqamJxZm5vbHE=');
+								xhr.setRequestHeader('Content-Type', 'application/json');
+								xhr.send(json);
+								xhr.onload = function(){
+									if(this.status == 200){
+										loadMenu(this);
+									}
+								}
+								xhr.send();							  
+							  }
+							  function get(url){
+								var xhr = new XMLHttpRequest();
+								xhr.open('GET', url);
+								xhr.setRequestHeader('Authorization', 'Basic Om93bDNtN2pod2NuZWZ3NGw3YjJsd3VnNWw2M3J5M3psczRja3M2YWI2dGlqamJxZm5vbHE=');
+								xhr.onload = function(){
+									if(this.status == 200){
+										loadMenuItems(this);
+									}
+								}
+								xhr.send();							  
+							  }
+							  
+							  function loadMenuItems(context){
+							  var result = JSON.parse(context.responseText);
+								var output = '<ul class="navbar-nav mr-auto">' +
+											'<li class="nav-item active">' +
+													'<a class="nav-link" href="index.html"> Home </a>' +
+												'</li>';
+										for(var i in result.value){
+											output += 
+												'<li class="nav-item ">' +
+													'<a class="nav-link" href="index.html"> ' + result.value[i].fields['System.Title'] + '</a>' +
+												'</li>';
+										}
+										output += '</ul>';
+										output += '<li class="nav-item d_none login_btn">' +
+													 '<a class="nav-link" href="#">Login</a>' +
+												  '</li>' +
+												  '<li class="nav-item d_none">' +
+													 '<a class="nav-link" href="#">Register</a>' +
+												  '</li>' +
+												  '<li class="nav-item d_none sea_icon">' +
+													 '<a class="nav-link" href="#"><i class="fa fa-shopping-bag" aria-hidden="true"></i><i class="fa fa-search" aria-hidden="true"></i></a>' +
+												  '</li>';
+										document.getElementById('navbarsExample04').innerHTML = output;
+							  }
+							  
+							  function loadMenu(context){
+								  if(context.status == 200)
+									{
+										var result = JSON.parse(context.responseText);
+										var ids = "", sep = "";
+										for(var i in result.workItems){
+											ids += sep + '' + result.workItems[i].id
+											sep = ",";
+										}
+										get('https://dev.azure.com/kukhanya/FormForm/_apis/wit/workitems?ids=' + ids + '&api-version=6.0');
+										
+										
+									}
+								  }
+							var xhr = new XMLHttpRequest();
+							var json = JSON.stringify({"query": "Select [System.Id], [System.Title], [System.State] From WorkItems Where [State] <> 'Closed' AND [State] <> 'Removed' AND [System.WorkItemType] = 'Feature' order by [Microsoft.VSTS.Common.Priority] asc, [System.CreatedDate] desc"});
+							post('https://dev.azure.com/kukhanya/FormForm/FormFormTeam/_apis/wit/wiql?api-version=6.0', json);
+								
+							  </script>
                         </div>
                      </nav>
                   </div>

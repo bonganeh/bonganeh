@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>AJAX 3 - External API</title>
+</head>
+<body>
+	<button id="button">Load Github Users</button>
+	<br><br>
+	<h1>Github Users</h1>
+	<div id="users"></div>
+
+	<script>
+		document.getElementById('button').addEventListener('click', loadUsers);
+
+		//Load Github Users
+		function loadUsers(){
+			var xhr = new XMLHttpRequest();
+			xhr.open('GET', ' https://dev.azure.com/Nedbank-Limited/_apis/wit/workitems/60?api-version=6.0', true);
+			xhr.setRequestHeader('Authorization', 'Basic OnZtZGxnYWZ3bGphcnlxenZtenc3ZjN2dmd3NGhuamV2cnB0NDdybGc0NmF0Y29nN2k0dnE=')
+
+			xhr.onload = function(){
+				if(this.status == 200){
+					var users = JSON.parse(this.responseText);
+
+					document.getElementById('users').innerHTML = users.rev;
+				}
+			}
+			xhr.send();
+		}
+	</script>
+</body>
+</html>

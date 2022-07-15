@@ -28,6 +28,43 @@
       <!--[if lt IE 9]>
       <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
       <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script><![endif]-->
+	  <script>
+			function post(url, json, callBack){
+				var xhr = new XMLHttpRequest();
+				xhr.open('POST', url, true);
+				xhr.setRequestHeader('Authorization', 'Basic ' + key);
+				xhr.setRequestHeader('Content-Type', 'application/json');
+				xhr.send(json);
+				xhr.onload = function(){
+					if(this.status == 200){
+						callBack(this);
+					}
+				}
+				xhr.send();							  
+			}
+			function get(url, callBack){
+				var xhr = new XMLHttpRequest();
+				xhr.open('GET', url);
+				xhr.setRequestHeader('Authorization', 'Basic '+ key);
+				xhr.onload = function(){
+					if(this.status == 200){
+						callBack(this);
+					}
+				}
+				xhr.send();							  
+			}
+			var base = 'https://dev.azure.com';
+			var org = 'kukhanya';
+			var project = 'FormForm';
+			var team = 'FormFormTeam';
+			var url_org = base + "/" + org;
+			var url_proj = url_org + "/" + project;
+			var url_team = url_proj + '/' + team;
+			var key = 'Om93bDNtN2pod2NuZWZ3NGw3YjJsd3VnNWw2M3J5M3psczRja3M2YWI2dGlqamJxZm5vbHE=';
+			var version = 'api-version=6.0';
+			var path_workitem = '_apis/wit/workitems?ids=#ids#&' + version;
+			var path_wiql = '_apis/wit/wiql?' + version;
+	  </script>
    </head>
    <!-- body -->
    <body class="main-layout">
@@ -46,7 +83,40 @@
                      <div class="full">
                         <div class="center-desk">
                            <div class="logo">
-                              <a href="index.html"><img src="images/logo.png" alt="#" /></a>
+                              <a href="index.html"><img id='logoD'  alt="#" /></a>
+							  <script>
+								function fetchWithAuthentication(url, authToken) {
+								  const headers = new Headers();
+								  headers.set('Authorization', authToken);
+								  headers.set('Access-Control-Allow-Origin', '*');
+								  headers.set('Accept-Encoding', 'gzip,deflate');
+								  headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+								  
+								  return fetch(url, { headers });
+								}
+								
+								async function displayProtectedImage(
+								  imageId, imageUrl, authToken
+								) {
+								  // Fetch the image.
+								  const response = await fetchWithAuthentication(
+									imageUrl, authToken
+								  );
+
+								  // Create an object URL from the data.
+								  const blob = await response.blob();
+								  const objectUrl = URL.createObjectURL(blob);
+								  // Update the source of the image.
+								  const imageElement = document.getElementById('logoD');
+								  imageElement.src = objectUrl;
+								}
+								
+								
+								const imageId = 'logoD';
+								const imageUrl = 'https://dev.azure.com/kukhanya/8e9af444-30a4-43ee-a674-412f43e7f9d6/_apis/wit/attachments/16c89cac-a36b-450e-8a3e-3cff0532c60b';
+								const authToken = 'Basic Om93bDNtN2pod2NuZWZ3NGw3YjJsd3VnNWw2M3J5M3psczRja3M2YWI2dGlqamJxZm5vbHE=';
+								displayProtectedImage(imageId, imageUrl, authToken);
+							  </script>
                            </div>
                         </div>
                      </div>
@@ -58,32 +128,7 @@
                         </button>
                         <div class="collapse navbar-collapse" id="navbarsExample04">
                            					  
-							<script>
-							  function post(url, json){
-								var xhr = new XMLHttpRequest();
-								xhr.open('POST', url, true);
-								xhr.setRequestHeader('Authorization', 'Basic Om93bDNtN2pod2NuZWZ3NGw3YjJsd3VnNWw2M3J5M3psczRja3M2YWI2dGlqamJxZm5vbHE=');
-								xhr.setRequestHeader('Content-Type', 'application/json');
-								xhr.send(json);
-								xhr.onload = function(){
-									if(this.status == 200){
-										loadMenu(this);
-									}
-								}
-								xhr.send();							  
-							  }
-							  function get(url){
-								var xhr = new XMLHttpRequest();
-								xhr.open('GET', url);
-								xhr.setRequestHeader('Authorization', 'Basic Om93bDNtN2pod2NuZWZ3NGw3YjJsd3VnNWw2M3J5M3psczRja3M2YWI2dGlqamJxZm5vbHE=');
-								xhr.onload = function(){
-									if(this.status == 200){
-										loadMenuItems(this);
-									}
-								}
-								xhr.send();							  
-							  }
-							  
+							<script>							  
 							  function loadMenuItems(context){
 							  var result = JSON.parse(context.responseText);
 								var output = '<ul class="navbar-nav mr-auto">' +
@@ -98,10 +143,10 @@
 										}
 										output += '</ul>';
 										output += '<li class="nav-item d_none login_btn">' +
-													 '<a class="nav-link" href="#">Login</a>' +
+													 '<a class="nav-link" href="#">Access</a>' +
 												  '</li>' +
 												  '<li class="nav-item d_none">' +
-													 '<a class="nav-link" href="#">Register</a>' +
+													 '<a class="nav-link" href="#">Welcome, Bongani (Preview Mode)</a>' +
 												  '</li>' +
 												  '<li class="nav-item d_none sea_icon">' +
 													 '<a class="nav-link" href="#"><i class="fa fa-shopping-bag" aria-hidden="true"></i><i class="fa fa-search" aria-hidden="true"></i></a>' +
@@ -118,14 +163,12 @@
 											ids += sep + '' + result.workItems[i].id
 											sep = ",";
 										}
-										get('https://dev.azure.com/kukhanya/FormForm/_apis/wit/workitems?ids=' + ids + '&api-version=6.0');
-										
-										
+										get(url_proj + '/' + path_workitem.replace("#ids#", ids), loadMenuItems);
 									}
 								  }
 							var xhr = new XMLHttpRequest();
 							var json = JSON.stringify({"query": "Select [System.Id], [System.Title], [System.State] From WorkItems Where [State] <> 'Closed' AND [State] <> 'Removed' AND [System.WorkItemType] = 'Feature' order by [Microsoft.VSTS.Common.Priority] asc, [System.CreatedDate] desc"});
-							post('https://dev.azure.com/kukhanya/FormForm/FormFormTeam/_apis/wit/wiql?api-version=6.0', json);
+							post(url_team + '/' + path_wiql, json, loadMenu);
 								
 							  </script>
                         </div>

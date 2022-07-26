@@ -35,13 +35,20 @@
 				xhr.open('POST', url, true);
 				xhr.setRequestHeader('Authorization', 'Basic ' + key);
 				xhr.setRequestHeader('Content-Type', 'application/json');
-				xhr.send(json);
 				xhr.onload = function(){
 					if(this.status == 200){
 						callBack(this);
 					}
 				}
-				xhr.send();							  
+				try {
+				xhr.send(json);
+				} catch (e) {
+					alert(e + ":" + e);
+				   console.log(e);
+				   console.log(url);
+				   console.log(callBack);
+				   console.log(json);
+				} 						  
 			}
 			function get(url, callBack){
 				var xhr = new XMLHttpRequest();
@@ -49,10 +56,15 @@
 				xhr.setRequestHeader('Authorization', 'Basic '+ key);
 				xhr.onload = function(){
 					if(this.status == 200){
-						callBack(this);
+						return callBack(this);
 					}
 				}
-				xhr.send();							  
+				try {
+					xhr.send();
+				} catch (e) {
+				   console.log(e);
+				} 
+			
 			}
 			
 			function fetchWithAuthentication(url, authToken) {
@@ -63,6 +75,7 @@
 			  headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');						  
 			  return fetch(url, { headers });
 			}
+			
 			async function displayProtectedImage(imageId, imageUrl, authToken) 
 			{
 			  // Fetch the image.
@@ -120,6 +133,7 @@
 				get(url_proj + '/' + path_workitems.replaceAll("#ids#", ids), loadConfigValues);
 			  }
 			  var config = {};
+			  
 			  function loadConfigValues(context){
 			  if(context.status == 200)
 				{
@@ -137,15 +151,14 @@
 			  var jsonConfig = JSON.stringify({"query": "Select [System.Id], [System.Title], [System.State] From WorkItems Where [State] <> 'Closed' AND [State] <> 'Removed' AND [System.WorkItemType] = 'Feature' AND [Custom.Type] = 'Config' AND [System.Title] = 'Sunglass' order by [Microsoft.VSTS.Common.Priority] asc, [System.CreatedDate] desc"});
 			  key = localStorage.getItem(site + "Token")
 			  
-			  get('https://vssps.dev.azure.com/kukhanya' + '/_apis/Token/SessionTokens?api-version=5.0-preview', loadToken);
+			  //get('https://vssps.dev.azure.com/kukhanya' + '/_apis/Token/SessionTokens?api-version=5.0-preview', loadToken);
 			
 			function loadToken(context){
 				var result = JSON.parse(context.responseText);
 				var date = new Date(result.value.find(x => x.displayName == site + 'Token').validTo);
 				tokenDate = date.toString('YY MM DD');
-					document.getElementById('tokenDateId').innerHTML = 'Valid until ' +  formatDate(tokenDate);
-					document.getElementById('userId').innerHTML = user;
-					
+				//document.getElementById('tokenDateId').innerHTML = 'Valid until ' +  formatDate(tokenDate);
+				//document.getElementById('userId').innerHTML = user;					
 			}
 			
 			function formatDate(date) {
@@ -172,239 +185,132 @@
          <div class="loader"><img src="images/loading.gif" alt="#" /></div>
       </div>
       <!-- end loader -->
-      <!-- header -->
-      <header>
-         <!-- header inner -->
-         <div class="header">
-            <div class="container-fluid">
-               <div class="row">
-                  <div class="col-xl-3 col-lg-3 col-md-3 col-sm-3 col logo_section">
-                     <div class="full">
-                        <div class="center-desk">
-                           <div class="logo" id='logoD_div' style="display: none;">
-                              <a href="index.html"><img id='logoD'  alt="#" /></a>
-							  <script>
-								
-								function loadImage(context){
-									get(url_proj + '/' + path_workitem.replaceAll("#ids#", JSON.parse(context.responseText).workItems[0].id), loadImageItem);
-								}
-								
-								function loadImageItem(context){						
-									displayProtectedImage('logoD', JSON.parse(context.responseText).relations.find(attachment => attachment.rel == "AttachedFile").url, 'Basic ' + key);
-								}
-								var json = JSON.stringify({"query": "Select [System.Id] From WorkItems Where [State] <> 'Closed' AND [State] <> 'Removed' AND [System.WorkItemType] = 'Feature' AND [Custom.Type] = 'Image' AND [System.Title] = 'Logo' order by [Microsoft.VSTS.Common.Priority] asc, [System.CreatedDate] desc"});
-								
-								post(url_team + '/' + path_wiql, json, loadImage);
-							  </script>
-                           </div>
-                        </div>
-                     </div>
-                  </div>
-                  <div class="col-xl-9 col-lg-9 col-md-9 col-sm-9">
-                     <nav class="navigation navbar navbar-expand-md navbar-dark ">
-                        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExample04" aria-controls="navbarsExample04" aria-expanded="false" aria-label="Toggle navigation">
-                        <span class="navbar-toggler-icon"></span>
-                        </button>
-						<div class="collapse navbar-collapse" id="navbarsExample03" style="display: block;">  
-							<ul class="navbar-nav mr-auto">
-							<li class="nav-item d_none login_btn">
-									 <a class="nav-link" href="#" data-toggle="modal" data-target="#narratModal" >Access</a>
-								  </li>
-							  </ul>
-						</div>
-                        <div class="collapse navbar-collapse" id="navbarsExample04" style="display: none;">  
-							
-							<script>							  
-							  function loadMenuItems(context){
-								var result = JSON.parse(context.responseText);
-								var output = '<ul class="navbar-nav mr-auto">';
-								var temp = '<li class="nav-item active">' +
-													'<a class="nav-link" href="index.html"> Home </a>' +
-												'</li>';
-										for(var i in result.value){
-											output += 
-												'<li class="nav-item ">' +
-													'<a class="nav-link" href="index.html"> ' + result.value[i].fields['System.Title'] + '</a>' +
-												'</li>';
-										}
-										output += '<li class="nav-item d_none">' +
-													 '<a class="nav-link" href="#">Welcome, ' + user + ' (Preview Mode)</a>' +
-												  '</li>';
-												  
-										output += '<li class="nav-item d_none login_btn">' +
-														 '<a class="nav-link" href="#" data-toggle="modal" data-target="#narratModal">Access</a>' +
-													  '</li>';
-										output += '</ul>';
-										document.getElementById('navbarsExample04').innerHTML = output;
-										document.getElementById('navbarsExample04').style.display = 'block';
-										document.getElementById('navbarsExample03').innerHTML = '';
-										document.getElementById('navbarsExample03').style.display = 'none';
-							  }
-							  
-							  function loadMenu(context){
-								  if(context.status == 200)
-									{
-										var result = JSON.parse(context.responseText);
-										var ids = "", sep = "";
-										for(var i in result.workItems){
-											ids += sep + '' + result.workItems[i].id;
-											sep = ",";
-										}
-										get(url_proj + '/' + path_workitems.replaceAll("#ids#", ids), loadMenuItems);
-									}
-								  }
-							var json = JSON.stringify({"query": "Select [System.Id], [System.Title], [System.State] From WorkItems Where [State] <> 'Closed' AND [State] <> 'Removed' AND [System.WorkItemType] = 'Feature' AND [Custom.Type] = 'Menu' order by [Microsoft.VSTS.Common.Priority] asc, [System.CreatedDate] desc"});
-							post(url_team + '/' + path_wiql, json, loadMenu);
-								
-							  </script>
-                        </div>
-                     </nav>
-                  
-				  </div>
-               </div>
-            </div>
-         </div>
-      </header>
 	  
-	  <div class="modal fade" id="narratModal" tabindex="-1" role="dialog" aria-labelledby="narratModalLabel" aria-hidden="true">
-		  <div class="modal-dialog">
-			<div class="modal-content">
-			  <div class="modal-header">
-				<h4 class="modal-title modal_head" id="narratModalLabel">Access <label class="modal_note" id="tokenDateId">Enter Name</label></h4>
-				
-				<button type="button" class="close cash-dismiss" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-			  </div>
-			  <div class="modal-body">
-				<label class="modal_note">Enter Name</label>
-				<input class="myInput form-control form-control-sm" id='userId'/><br>
-				<label class="modal_note">Enter Access Token</label>
-				<input class="myInput form-control form-control-sm" id='tokenId'/><br>
-				<button type="button" class="btn btn-primary cashmodal_btn" id="narrat_ok" data-dismiss="modal" onclick="saveToken()">Save Token</button>
-				
-				<script>
-					function saveToken(){
-						localStorage.setItem("userId", document.getElementById('userId').value);
-						localStorage.setItem(user + site + "Token", document.getElementById('tokenId').value);
-					}
-					function sendAccessEmail(){
-						window.location.href = "mailto:user@example.com?subject=Subject&body=message%20goes%20here";
-					}
-					function sendAccessWhatsapp(){
-						window.location.href = "https://wa.me/+27726359342/?text=AccessSunglass";
-					}
-				</script>
-			  </div>
-			  <div class="modal-footer narr_footer">
-				Dont have a token?<br>
-				<button type="button" class="btn btn-primary cashmodal_btn" id="narrat_ok" data-dismiss="modal"  onclick="sendAccessWhatsapp()">Whatsapp Request</button>
-				<button type="button" class="btn btn-primary cashmodal_btn" id="narrat_ok" data-dismiss="modal"  onclick="sendAccessEmail()">Send Email Request</button>
+      <!-- header -->
+	  <div id='menuLogo'>
+		  <header>
+			<div class="header">
+			<div class="container-fluid">
+			  <div class="row">
+			 <div class="col-xl-3 col-lg-3 col-md-3 col-sm-3 col logo_section" id='logoHtml'>                    
+			 </div>
+			 <div class="col-xl-9 col-lg-9 col-md-9 col-sm-9" id='menuHtml'>                  
+			 </div>
 			  </div>
 			</div>
-		  </div>
-		</div>
-      <!-- end header inner -->
+			</div>
+			 </header>
+	  </div>
+	  <!-- end header inner -->
+                        
+	  <div id="modal"/>
+	  </div>
+		
       <!-- end header -->
       <!-- banner -->
-      <section class="banner_main">
-         <div id="banner1" class="carousel slide" data-ride="carousel">
-            <ol class="carousel-indicators">
-               <li data-target="#banner1" data-slide-to="0" class="active"></li>
-               <li data-target="#banner1" data-slide-to="1"></li>
-               <li data-target="#banner1" data-slide-to="2"></li>
-            </ol>
-            <div class="carousel-inner" id="carouselID">
-               <div class="carousel-item active">
-                  <div class="container">
-                     <div class="carousel-caption">
-                        <div class="text-bg">
-                           <h1> <div id="carouselTitle0"/>  </h1>
-                           <figure><div id="carouselImage0_div" style="display: none;"><img src="images/banner_img.png" id="carouselImage0" alt="#"/></div></figure>
-                           <a class="read_more" href="#">Shop Now</a>
-                        </div>
-                     </div>
-                  </div>
-               </div>
-               <div class="carousel-item">
-                  <div class="container">
-                     <div class="carousel-caption">
-                        <div class="text-bg">
-                           <h1> <div id="carouselTitle1"/>  </h1>
-                           <figure><div id="carouselImage1_div" style="display: none;"><img src="images/banner_img.png" id="carouselImage1" alt="#"/></div></figure>
-                           <a class="read_more" href="#">Shop Now</a>
-                        </div>
-                     </div>
-                  </div>
-               </div>
-               <div class="carousel-item">
-                  <div class="container">
-                     <div class="carousel-caption">
-                        <div class="text-bg">
-                           <h1> <div id="carouselTitle2"/>  </h1>
-                           <figure><div id="carouselImage2_div" style="display: none;"><img src="images/banner_img.png" id="carouselImage2" alt="#"/></div></figure>
-                           <a class="read_more" href="#">Shop Now</a>
-                        </div>
-                     </div>
-                  </div>
-               </div>
-            </div>
-            <a class="carousel-control-prev" href="#banner1" role="button" data-slide="prev">
-            <i class="fa fa-arrow-left" aria-hidden="true"></i>
-            </a>
-            <a class="carousel-control-next" href="#banner1" role="button" data-slide="next">
-            <i class="fa fa-arrow-right" aria-hidden="true"></i>
-            </a>
-         </div>
-      </section>
+	  <div id='carouselBanner'>
+      </div>
       
 	  <script>						 
-							  function loadCarouselItems(context){
-							  var result = JSON.parse(context.responseText);
-										for(var i in result.value){
-											document.getElementById('carouselTitle' + i).innerHTML = result.value[i].fields['System.Description'];
-											}
-											
-							  }
 							  
-								function loadCarouselImageItem(context){
-									var results = JSON.parse(context.responseText);
-									var index = idsArr.indexOf(parseInt(results.id, 10));
-									displayProtectedImage('carouselImage' + index, results.relations.find(attachment => attachment.rel == "AttachedFile").url, 'Basic ' + key);
-									
-									
-								};
-							  var idsArr = [];
-							  var index;
-							  function loadCarousel(context){
+								  
+								  function loadQueries(context){
 								  if(context.status == 200)
-									{
+									{										
 										var result = JSON.parse(context.responseText);
-										var ids = "", sep = "";
 										for(var i in result.workItems){	
-											index = i;
-											idsArr[i] = result.workItems[i].id;
-											get(url_proj + '/' + path_workitem.replaceAll("#ids#", result.workItems[i].id), loadCarouselImageItem);
-											ids += sep + '' + result.workItems[i].id
-											sep = ",";
+											getItemText(result.workItems[i].id);
 										}
-										get(url_proj + '/' + path_workitems.replaceAll("#ids#", ids), loadCarouselItems);
 									}
 								  }
+								  
+								  function getItemText(id){
+										get(url_proj + '/' + path_workitem.replaceAll("#ids#", id), getItemValue);
+								  }
+								  function getItemValue(context){
+										if(context.status == 200)
+									{
+										var result = JSON.parse(context.responseText);
+										var title = result.fields['System.Title'];										
+										queries[title] = stripHtml(result.fields['Custom.Data']);
+										console.log(title);
+										switch(title){
+											case 'ConfigQuery': post(url_team + '/' + path_wiql, JSON.stringify({"query": "" + queries[title]}), loadConfig); break;
+											case 'FlexQuery': post(url_team + '/' + path_wiql, JSON.stringify({"query": "" + queries[title]}), loadFlex); break;
+											//case 'CarouselQuery': post(url_team + '/' + path_wiql, JSON.stringify({"query": "" + queries[title]}), loadCarousel); break;
+											case 'LogoQuery': post(url_team + '/' + path_wiql, JSON.stringify({"query": "" + queries[title]}), loadImage); break;
+											case 'MenuQuery': post(url_team + '/' + path_wiql, JSON.stringify({"query": "" + queries[title]}), loadMenu); break;
+											default : break;
+										}
+										return result.fields['Custom.Text'];
+									}
+								  }
+								  
+								  function stripHtml(html)
+										{
+										   let tmp = document.createElement("DIV");
+										   tmp.innerHTML = html;
+										   return tmp.textContent || tmp.innerText || "";
+										}
+								  var queries = []
 									
 									window.onload = function () { 
-										var json = JSON.stringify({"query": "Select [System.Id], [System.Title], [System.State] From WorkItems Where [State] <> 'Closed' AND [State] <> 'Removed' AND [System.WorkItemType] = 'Feature' AND [Custom.Type] = 'Carousel' order by [Microsoft.VSTS.Common.Priority] asc, [System.CreatedDate] desc"});
-											post(url_team + '/' + path_wiql, json, loadCarousel);
-									
+										var json = JSON.stringify({"query": "Select [System.Id], [System.Title], [System.Description] From WorkItems Where [State] <> 'Closed' AND [State] <> 'Removed' AND [System.WorkItemType] = 'Feature' AND [Custom.Type] = 'Script' order by [Microsoft.VSTS.Common.Priority] asc, [System.CreatedDate] desc"});
+										var json2 = JSON.stringify({"query": "Select [System.Id], [System.Title], [System.Description] From WorkItems Where [State] <> 'Closed' AND [State] <> 'Removed' AND [System.WorkItemType] = 'Feature' AND [Custom.Type] = 'Html' order by [Custom.Order] asc"});										
+										post(url_team + '/' + path_wiql, json2, menuHtml);
+										post(url_team + '/' + path_wiql, json, loadScript);
 									}
+										
+									
+								function menuHtml(context){
+								  if(context.status == 200)
+									{		
+										var result = JSON.parse(context.responseText);
+										for(var i in result.workItems){
+											get(url_proj + '/' + path_workitem.replaceAll("#ids#", result.workItems[i].id), getHtml);
+										}
+									}
+								  }
+								  
+								  function getHtml(context){
+										var result = JSON.parse(context.responseText);
+										document.getElementById(result.fields['Custom.Text']).innerHTML = stripHtml(result.fields['Custom.Data']).replace('&nbsp', '');	
+								  }
+									
+							function loadScript(context){
+								  if(context.status == 200)
+									{		
+										var result = JSON.parse(context.responseText);
+										for(var i in result.workItems){
+											get(url_proj + '/' + path_workitem.replaceAll("#ids#", result.workItems[i].id), getScript);
+										}
+										var json = JSON.stringify({"query": "Select [System.Id], [System.Title], [System.Description] From WorkItems Where [State] <> 'Closed' AND [State] <> 'Removed' AND [System.WorkItemType] = 'Feature' AND [Custom.Type] = 'Query' order by [Microsoft.VSTS.Common.Priority] asc, [System.CreatedDate] desc"});
+										post(url_team + '/' + path_wiql, json, loadQueries);
+									}
+								  }
+								  
+								  function getScript(context){
+											var result = JSON.parse(context.responseText);
+								  try {     
+											console.log("---" + stripHtml(result.fields['System.Title']).replace('\t',''));
+											eval(stripHtml(result.fields['Custom.Data']).replace('\t',''));
+									} catch (e) {
+										alert(e);
+									   console.log(e);
+									   console.log(context.responseText);
+									}
+										
+												
+								  }
+							 var idsArr = [];
+ var index;
 							
-							
-							
-							  </script>
-          
+							  </script>          
 			
       <!-- end banner -->
       <!-- about section -->
       <div class="about" id="flex">
-	   <script>						 
+							<script>						 
 							  function loadFlexItems(context){
 							  var result = JSON.parse(context.responseText);
 							  var temp = '<div class="container">' +
@@ -434,14 +340,13 @@
 										var result = JSON.parse(context.responseText);
 										var ids = "", sep = "";
 										for(var i in result.workItems){
-											ids += sep + '' + result.workItems[i].id
+											ids += sep + '' + result.workItems[i].id;
 											sep = ",";
 										}
 										get(url_proj + '/' + path_workitem.replaceAll("#ids#", ids), loadFlexItems);
 									}
 								  }
-							var json = JSON.stringify({"query": "Select [System.Id], [System.Title], [System.State] From WorkItems Where [State] <> 'Closed' AND [State] <> 'Removed' AND [System.WorkItemType] = 'Feature' AND [Custom.Type] = 'Flex' order by [Microsoft.VSTS.Common.Priority] asc, [System.CreatedDate] desc"});
-							post(url_team + '/' + path_wiql, json, loadFlex);
+							
 							
 							
 							  </script>
@@ -502,95 +407,126 @@
 							  </script>
         
 	  </div>
-	  
-	  <div class="clients" id="pages">
+	  <div class="clients">
+         <div class="container">
+            <div class="row">
+               <div class="col-md-12">
+                  <div class="titlepage" id="pageTitle">
+                  </div>
+               </div>
+            </div>
+            <div class="row">
+               <div class="col-md-12">
+                  <div id="myCarousel" class="carousel slide clients_Carousel " data-ride="carousel">
+                     <ol class="carousel-indicators">
+                        <li data-target="#myCarousel" data-slide-to="0" class="active"></li>
+                        <li data-target="#myCarousel" data-slide-to="1"></li>
+                        <li data-target="#myCarousel" data-slide-to="2"></li>
+                     </ol>
+                     <div class="carousel-inner">
+                        <div class="carousel-item active">
+                           <div class="container">
+                              <div class="carousel-caption ">
+                                 <div class="row">
+                                    <div class="col-md-12">
+                                       <div class="clients_box">
+                                          <figure><img src="images/our.png" alt="#"/></figure>
+										  <div id="Page0">
+										  </div>
+										  </div>
+                                    </div>
+                                 </div>
+                              </div>
+                           </div>
+                        </div>
+                        <div class="carousel-item">
+                           <div class="container">
+                              <div class="carousel-caption">
+                                 <div class="row">
+                                    <div class="col-md-12">
+                                       <div class="clients_box">
+                                          <figure><img src="images/our.png" alt="#"/></figure>
+										  
+										  <div id="Page1">
+										  </div>
+										 </div>
+                                    </div>
+                                 </div>
+                              </div>
+                           </div>
+                        </div>
+                        <div class="carousel-item">
+                           <div class="container">
+                              <div class="carousel-caption">
+                                 <div class="row">
+                                    <div class="col-md-12">
+                                       <div class="clients_box">
+                                          <figure><img src="images/our.png" alt="#"/></figure>
+                                          
+										  <div id="Page2">
+										  </div>
+										 </div>
+                                    </div>
+                                 </div>
+                              </div>
+                           </div>
+                        </div>
+                     </div>
+                     <a class="carousel-control-prev" href="#myCarousel" role="button" data-slide="prev">
+                     <i class='fa fa-angle-left'></i>
+                     </a>
+                     <a class="carousel-control-next" href="#myCarousel" role="button" data-slide="next">
+                     <i class='fa fa-angle-right'></i>
+                     </a>
+                  </div>
+               </div>
+            </div>
+         </div>
+      </div>
+      
 	  <script>						 
 							 var shared = '';
-							  function loadPagesItems(context){
-							  var result = JSON.parse(context.responseText);
-							  var temp = '<div class="container">' + 
-											'<div class="row">' +
-											   '<div class="col-md-12">' +
-												  '<div class="titlepage">' +
-													 '<h2>#Title#</h2>' +
-													 '<p>#Description#</p>' +
-												  '</div>' +
-											   '</div>' +
-											'</div>';
-								var output = temp.replaceAll("#Title#", result.fields['System.Title']).replaceAll('#Description#', result.fields['System.Description']);
-								output += '<div class="row"><div class="col-md-12">' +
-											  '<div id="myCarousel" class="carousel slide clients_Carousel " data-ride="carousel">' +
-												 '<ol class="carousel-indicators">';
-								var item = '<li data-target="#myCarousel" data-slide-to="#id#" class="#active#"></li>';
-								for(var i in result.relations){
-										var index = parseInt(i) + 1;
-											output += item.replaceAll('#id#', i ).replaceAll('#active#', i == 0 ? 'active' : '');
-										}
-								output += '</ol>';
-								output += '<div class="carousel-inner">';
-								var innerItem = '<div class="carousel-item #active#">' +
-												   '<div class="container">' +
-													  '<div class="carousel-caption ">' +
-														 '<div class="row">' +
-															'<div class="col-md-12">' +
-															   '<div class="clients_box">' +
-																  '<figure><img src="images/our.png" alt="#"/></figure>' +
-																  '<h3>#Title#id##</h3>' +
-																  '<p>#Description#id##</p>' +
-																 '</div>' +
-															'</div>' +
-														 '</div>' +
-													  '</div>' +
-												   '</div>' +
-												'</div>';
-								var ids = '', sep = '';
-								for(var i in result.relations){
-											output += innerItem.replaceAll('#id#', i).replaceAll('#active#', i == 0 ? 'active' : '');
-											ids += sep + '' + result.relations[i].url.split('/').pop();
-											sep = ",";
-								}
-								output += '</div>';
-								output += '<a class="carousel-control-prev" href="#myCarousel" role="button" data-slide="prev">' +
-											   '<i class="fa fa-angle-left" />' +
-											'</a>' +
-											'<a class="carousel-control-next" href="#myCarousel" role="button" data-slide="next">' +
-											   '<i class="fa fa-angle-right" />' +
-											'</a>';
-								output += '</div></div>';
-								output += '</div></div>';
-								shared = output;
-								get(url_proj + '/' + path_workitems.replaceAll("#ids#", ids), loadPageData);
-								
+							 var idsArr = [];
+							  function loadPageInfo(context){
+								get(url_proj + '/' + path_workitem.replaceAll("#ids#", JSON.parse(context.responseText).workItems[0].id), loadPageData);								
 							  }
 							 function loadPageData(context){
-								  if(context.status == 200)
+									var temp =  '<h2>#Title#</h2>' +
+										 '<p>#Description#</p>';
+								 if(context.status == 200)
 									{
 										var result = JSON.parse(context.responseText);
-										for(var i in result.value){
-											shared = shared.replaceAll('#Title' + i + '#', result.value[i].fields['System.Title']).replaceAll('#Description' + i + '#', result.value[i].fields['System.Description']);
-										}									
-										document.getElementById('pages').innerHTML = shared;
+										document.getElementById('pageTitle').innerHTML = temp.replaceAll('#Title#', result.fields['System.Title']).replaceAll('#Description#', result.fields['System.Description'])
+										 var ids = '';
+										 var sep = '';
+										 for(var i in result.relations){
+											idsArr[i] = result.relations[i].url.split('/').pop();
+											get(url_proj + '/' + path_workitem.replaceAll("#ids#", idsArr[i]), loadPageImage);
+											ids += sep + idsArr[i];
+											sep = ',';
+										 }
+										get(url_proj + '/' + path_workitems.replaceAll("#ids#", ids), loadPages);
+										
 										}
 							}
-							  function loadPages(context){
-								  if(context.status == 200)
-									{
-										var result = JSON.parse(context.responseText);
-										var ids = "", sep = "";
-										for(var i in result.workItems){
-											ids += sep + '' + result.workItems[i].id
-											sep = ",";
-										}
-										get(url_proj + '/' + path_workitem.replaceAll("#ids#", ids), loadPagesItems);
-									}
-								  }
+							function loadPageImage(context){
+									var results = JSON.parse(context.responseText);
+									var index = idsArr.indexOf(parseInt(results.id, 10));
+									displayProtectedImage('carouselImage' + index, results.relations.find(attachment => attachment.rel == "AttachedFile").url, 'Basic ' + key);
+								};							  function loadPages(context){
+							  var result = JSON.parse(context.responseText);
+										for(var i in result.value){
+											document.getElementById('Page' + i).innerHTML = result.value[i].fields['System.Description'];
+											}
+											
+							  }
 							var json = JSON.stringify({"query": "Select [System.Id], [System.Title], [System.State] From WorkItems Where [State] <> 'Closed' AND [State] <> 'Removed' AND [System.WorkItemType] = 'Feature' AND [Custom.Type] = 'Pages' order by [Microsoft.VSTS.Common.Priority] asc, [System.CreatedDate] desc"});
-							post(url_team + '/' + path_wiql, json, loadPages);
+							post(url_team + '/' + path_wiql, json, loadPageInfo);
 							
 							
 							  </script>
         
-	</div>
+	
       <!-- end clients section -->
       <!-- contact section -->
 	  
@@ -669,9 +605,6 @@
                   <div class="row">
                      <div class="col-md-12">
                         <p><div id='CopyrightID'/></p>
-						<script>
-								post(url_team + '/' + path_wiql, jsonConfig, loadConfig);
-							</script>
                      </div>
                   </div>
                </div>
